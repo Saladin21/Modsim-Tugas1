@@ -24,158 +24,186 @@ FILE *infile, *outfile;
 
 
 void
-arrive (int new_job)		/* Function to serve as both an arrival event of a job
+arrive (int new_job, int jobshop_num)		/* Function to serve as both an arrival event of a job
 				   to the system, as well as the non-event of a job's
 				   arriving to a subsequent station along its
 				   route. */
 {
   int station;
+  switch (jobshop_num)
+  {
+  case 1:
+    /* If this is a new arrival to the system, generate the time of the next
+      arrival and determine the job type and task number of the arriving
+      job. */
+    if (new_job == 1)
+      {
+        event_schedule (sim_time + expon (mean_interarrival, STREAM_INTERARRIVAL), EVENT_ARRIVAL);
+        job_type = random_integer (prob_distrib_job_type, STREAM_JOB_TYPE);
+        task = 1;
+      }
 
-  /* If this is a new arrival to the system, generate the time of the next
-     arrival and determine the job type and task number of the arriving
-     job. */
+    /* Determine the station from the route matrix. */
 
+    station = route[job_type][task];
 
-  if (new_job == 1)
-    {
+    /* Check to see whether all machines in this station are busy. */
 
-      event_schedule (sim_time + expon (mean_interarrival, STREAM_INTERARRIVAL), EVENT_ARRIVAL);
-      job_type = random_integer (prob_distrib_job_type, STREAM_JOB_TYPE);
-      task = 1;
-    }
+    if (num_machines_busy[station] == num_machines[station])
+      {
 
-  /* Determine the station from the route matrix. */
+        /* All machines in this station are busy, so place the arriving job at
+          the end of the appropriate queue. Note that the following data are
+          stored in the record for each job:
+          1. Time of arrival to this station.
+          2. Job type.
+          3. Current task number. */
 
-  station = route[job_type][task];
+        transfer[1] = sim_time;
+        transfer[2] = job_type;
+        transfer[3] = task;
+        list_file (LAST, station);
+      }
 
-  /* Check to see whether all machines in this station are busy. */
+    else
+      {
 
-  if (num_machines_busy[station] == num_machines[station])
-    {
+        /* A machine in this station is idle, so start service on the arriving
+          job (which has a delay of zero). */
 
-      /* All machines in this station are busy, so place the arriving job at
-         the end of the appropriate queue. Note that the following data are
-         stored in the record for each job:
-         1. Time of arrival to this station.
-         2. Job type.
-         3. Current task number. */
+        sampst (0.0, station);	/* For station. */
+        sampst (0.0, num_stations + job_type);	/* For job type. */
+        ++num_machines_busy[station];
+        timest ((double) num_machines_busy[station], station);
 
-      transfer[1] = sim_time;
-      transfer[2] = job_type;
-      transfer[3] = task;
-      list_file (LAST, station);
-    }
+        /* Schedule a service completion.  Note defining attributes beyond the
+          first two for the event record before invoking event_schedule. */
 
-  else
-    {
-
-      /* A machine in this station is idle, so start service on the arriving
-         job (which has a delay of zero). */
-
-      sampst (0.0, station);	/* For station. */
-      sampst (0.0, num_stations + job_type);	/* For job type. */
-      ++num_machines_busy[station];
-      timest ((double) num_machines_busy[station], station);
-
-      /* Schedule a service completion.  Note defining attributes beyond the
-         first two for the event record before invoking event_schedule. */
-
-      transfer[3] = job_type;
-      transfer[4] = task;
-      event_schedule (sim_time + erlang (2, mean_service[job_type][task], STREAM_SERVICE), EVENT_DEPARTURE);
-    }
+        transfer[3] = job_type;
+        transfer[4] = task;
+        event_schedule (sim_time + erlang (2, mean_service[job_type][task], STREAM_SERVICE), EVENT_DEPARTURE);
+      }
+    break;
+  case 2:
+    /* code */
+    break;
+  case 3:
+    /* code */
+    break;
+  default:
+    break;
+  }
 }
 
-
 void
-depart (void)			/* Event function for departure of a job from a particular
+depart (int jobshop_num)			/* Event function for departure of a job from a particular
 				   station. */
 {
-  int station, job_type_queue, task_queue;
+  if (jobshop_num!=3)
+  {
+    int station, job_type_queue, task_queue;
 
-  /* Determine the station from which the job is departing. */
+    /* Determine the station from which the job is departing. */
 
-  job_type = transfer[3];
-  task = transfer[4];
-  station = route[job_type][task];
+    job_type = transfer[3];
+    task = transfer[4];
+    station = route[job_type][task];
 
-  /* Check to see whether the queue for this station is empty. */
+    /* Check to see whether the queue for this station is empty. */
 
-  if (list_size[station] == 0)
-    {
+    if (list_size[station] == 0)
+      {
 
-      /* The queue for this station is empty, so make a machine in this
-         station idle. */
+        /* The queue for this station is empty, so make a machine in this
+          station idle. */
 
-      --num_machines_busy[station];
-      timest ((double) num_machines_busy[station], station);
+        --num_machines_busy[station];
+        timest ((double) num_machines_busy[station], station);
+      }
+
+    else
+      {
+        /* The queue is nonempty, so start service on first job in queue. */
+
+        list_remove (FIRST, station);
+
+        /* Tally this delay for this station. */
+
+        sampst (sim_time - transfer[1], station);
+
+        /* Tally this same delay for this job type. */
+
+        job_type_queue = transfer[2];
+        task_queue = transfer[3];
+        sampst (sim_time - transfer[1], num_stations + job_type_queue);
+
+        /* Schedule end of service for this job at this station.  Note defining
+          attributes beyond the first two for the event record before invoking
+          event_schedule. */
+
+        transfer[3] = job_type_queue;
+        transfer[4] = task_queue;
+        event_schedule (sim_time + erlang (2, mean_service[job_type_queue][task_queue], STREAM_SERVICE), EVENT_DEPARTURE);
+      }
+
+    /* If the current departing job has one or more tasks yet to be done, send
+      the job to the next station on its route. */
+
+    if (task < num_tasks[job_type])
+      {
+        ++task;
+        arrive (2,1);
+      }
     }
 
-  else
-    {
-
-      /* The queue is nonempty, so start service on first job in queue. */
-
-      list_remove (FIRST, station);
-
-      /* Tally this delay for this station. */
-
-      sampst (sim_time - transfer[1], station);
-
-      /* Tally this same delay for this job type. */
-
-      job_type_queue = transfer[2];
-      task_queue = transfer[3];
-      sampst (sim_time - transfer[1], num_stations + job_type_queue);
-
-      /* Schedule end of service for this job at this station.  Note defining
-         attributes beyond the first two for the event record before invoking
-         event_schedule. */
-
-      transfer[3] = job_type_queue;
-      transfer[4] = task_queue;
-      event_schedule (sim_time + erlang (2, mean_service[job_type_queue][task_queue], STREAM_SERVICE), EVENT_DEPARTURE);
-    }
-
-  /* If the current departing job has one or more tasks yet to be done, send
-     the job to the next station on its route. */
-
-  if (task < num_tasks[job_type])
-    {
-      ++task;
-      arrive (2);
-    }
+  //Elif jobshop_num==3
+  else 
+  {
+    /* code */
+  }
 }
 
 
 void
-report (void)			/* Report generator function. */
+report (int jobshop)			/* Report generator function. */
 {
   int i;
   double overall_avg_job_tot_delay, avg_job_tot_delay, sum_probs;
+  switch (jobshop)
+  {
+  case 1:
+    /* Compute the average total delay in queue for each job type and the
+      overall average job total delay. */
 
-  /* Compute the average total delay in queue for each job type and the
-     overall average job total delay. */
+    fprintf (outfile, "\n\n\n\nJob type     Average total delay in queue");
+    overall_avg_job_tot_delay = 0.0;
+    sum_probs = 0.0;
+    for (i = 1; i <= num_job_types; ++i)
+      {
+        avg_job_tot_delay = sampst (0.0, -(num_stations + i)) * num_tasks[i];
+        fprintf (outfile, "\n\n%4d%27.3f", i, avg_job_tot_delay);
+        overall_avg_job_tot_delay += (prob_distrib_job_type[i] - sum_probs) * avg_job_tot_delay;
+        sum_probs = prob_distrib_job_type[i];
+      }
+    fprintf (outfile, "\n\nOverall average job total delay =%10.3f\n", overall_avg_job_tot_delay);
 
-  fprintf (outfile, "\n\n\n\nJob type     Average total delay in queue");
-  overall_avg_job_tot_delay = 0.0;
-  sum_probs = 0.0;
-  for (i = 1; i <= num_job_types; ++i)
-    {
-      avg_job_tot_delay = sampst (0.0, -(num_stations + i)) * num_tasks[i];
-      fprintf (outfile, "\n\n%4d%27.3f", i, avg_job_tot_delay);
-      overall_avg_job_tot_delay += (prob_distrib_job_type[i] - sum_probs) * avg_job_tot_delay;
-      sum_probs = prob_distrib_job_type[i];
-    }
-  fprintf (outfile, "\n\nOverall average job total delay =%10.3f\n", overall_avg_job_tot_delay);
+    /* Compute the average number in queue, the average utilization, and the
+      average delay in queue for each station. */
 
-  /* Compute the average number in queue, the average utilization, and the
-     average delay in queue for each station. */
-
-  fprintf (outfile, "\n\n\n Work      Average number      Average       Average delay");
-  fprintf (outfile, "\nstation       in queue       utilization        in queue");
-  for (j = 1; j <= num_stations; ++j)
-    fprintf (outfile, "\n\n%4d%17.3f%17.3f%17.3f", j, filest (j), timest (0.0, -j) / num_machines[j], sampst (0.0, -j));
+    fprintf (outfile, "\n\n\n Work      Average number      Average       Average delay");
+    fprintf (outfile, "\nstation       in queue       utilization        in queue");
+    for (j = 1; j <= num_stations; ++j)
+      fprintf (outfile, "\n\n%4d%17.3f%17.3f%17.3f", j, filest (j), timest (0.0, -j) / num_machines[j], sampst (0.0, -j));
+    break;
+  case 2:
+    /* code */
+    break;
+  case 3:
+    /* code */
+    break;  
+  default:
+    break;
+  }
 }
 
 int
@@ -272,13 +300,13 @@ main ()				/* Main function. */
       switch (next_event_type)
 	{
 	case EVENT_ARRIVAL:
-	  arrive (1);
+	  arrive (1,1);
 	  break;
 	case EVENT_DEPARTURE:
-	  depart ();
+	  depart (1);
 	  break;
 	case EVENT_END_SIMULATION:
-	  report ();
+	  report (1);
 	  break;
 	}
 

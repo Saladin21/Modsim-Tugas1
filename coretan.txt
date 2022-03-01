@@ -7,7 +7,7 @@ Job probability
 
 ###
 Baris pertama
-jumlah job, task, mean interarrival, length simulation
+jumlah task, job, mean interarrival, length simulation
 5         3      0.25     365.0
 nomor mesin
 3         2         4         3         1
@@ -29,7 +29,12 @@ Jobshop 1&2 (tier 1)
 0.5 0.5
 Event depart dari tier 1 sama dengan arrive tier 2
 
-
 Problem: 
 Variabel simlib
 Fungsi timing simlib
+
+Event type
+Arrival -> Departure(Dari 1 or 2) -> Arrival di 3 -> Departure 3 -> End
+
+Pengerjaan:
+Event type ada 6

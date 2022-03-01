@@ -37,4 +37,5 @@ Event type
 Arrival -> Departure(Dari 1 or 2) -> Arrival di 3 -> Departure 3 -> End
 
 Pengerjaan:
-Event type ada 6
+Event type ada 8
+Sampst timest

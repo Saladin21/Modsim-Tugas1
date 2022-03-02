@@ -462,11 +462,15 @@ main ()				/* Main function. */
 
   /* Write report heading and input parameters. */
 
+  //Option set buffering to null
+  setbuf(outfile,NULL);
+
   fprintf (outfile, "Job-shop model\n\n");
   fprintf (outfile, "Number of work stations%21d\n\n", num_stations);
   fprintf (outfile, "Number of machines in each station     ");
   for (j = 1; j <= num_stations; ++j)
-    fprintf (outfile, "%5d", num_machines[j]);
+    //Number of stations identic per jobshop
+    fprintf (outfile, "%5d", num_machines[0][j]);
   fprintf (outfile, "\n\nNumber of job types%25d\n\n", num_job_types);
   fprintf (outfile, "Number of tasks for each job type      ");
   for (i = 1; i <= num_job_types; ++i)
@@ -480,25 +484,28 @@ main ()				/* Main function. */
   for (i = 1; i <= num_job_types; ++i)
     {
       fprintf (outfile, "\n\n%4d        ", i);
-      for (j = 1; j <= num_tasks[i]; ++j)
-	fprintf (outfile, "%5d", route[i][j]);
+      for (j = 1; j <= num_tasks[i]; ++j){
+        fprintf (outfile, "%5d", route[i][j]);
+      }
     }
   fprintf (outfile, "\n\n\nJob type     ");
   fprintf (outfile, "Mean service time (in hours) for successive tasks");
   for (i = 1; i <= num_job_types; ++i)
     {
       fprintf (outfile, "\n\n%4d    ", i);
-      for (j = 1; j <= num_tasks[i]; ++j)
-	fprintf (outfile, "%9.2f", mean_service[i][j]);
+      for (j = 1; j <= num_tasks[i]; ++j){
+        fprintf (outfile, "%9.2f", mean_service[i][j]);
+      }
     }
 
   /* Initialize all machines in all stations to the idle state. */
 
-  for (j = 1; j <= num_stations; ++j)
+  for (j = 1; j <= num_stations; ++j){
     num_machines_busy[0][j] = 0;
     num_machines_busy[1][j] = 0;
     num_machines_busy[2][j] = 0;
-
+  }
+    
   /* Initialize simlib */
 
   init_simlib ();
@@ -519,6 +526,8 @@ main ()				/* Main function. */
   /* Run the simulation until it terminates after an end-simulation event
      (type EVENT_END_SIMULATION) occurs. */
 
+  //Start of the simulation DEBUG message
+  fprintf(outfile,"\n\n\nSTART OF THE SIMULATION:");
   do
     {
 
@@ -566,5 +575,7 @@ main ()				/* Main function. */
   fclose (infile);
   fclose (outfile);
 
+  //End of the simulation DEBUG message
+  fprintf(outfile,"\n\n\nEND OF THE SIMULATION:");
   return 0;
 }

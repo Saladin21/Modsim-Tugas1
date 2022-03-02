@@ -33,28 +33,4 @@ Job type     Mean service time (in hours) for successive tasks
    3         1.20     0.25     0.70     0.90     1.00
 
 
-
-Job type     Average total delay in queue
-
-   1                     17.792
-
-   2                      9.043
-
-   3                     23.691
-
-Overall average job total delay =    14.597
-
-
-
- Work      Average number      Average       Average delay
-station       in queue       utilization        in queue
-
-   1            9.497            0.953            2.361
-
-   2           28.321            0.989           14.089
-
-   3            0.699            0.721            0.174
-
-   4           18.167            0.969            6.490
-
-   5            1.909            0.801            0.950
+START OF THE SIMULATION:

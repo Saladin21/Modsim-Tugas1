@@ -27,7 +27,7 @@ int num_stations, num_job_types, i, j, num_machines[NUM_JOB_SHOP][MAX_NUM_STATIO
 double mean_interarrival, length_simulation, prob_distrib_job_type[26],
   mean_service[MAX_NUM_JOB_TYPES + 1][MAX_NUM_STATIONS + 1];
 double prob_Job_Shop[2];
-int temp_read;
+int temp_read[MAX_NUM_STATIONS + 1];
 double* transfer2;
 double* transfer3;
 
@@ -56,7 +56,7 @@ arrive (int new_job)		/* Function to serve as both an arrival event of a job
     //job_shop = random_integer (prob_Job_Shop, STREAM_JOB_SHOP);
     //DEBUG
     //Note fungsi random integer selalu 1
-    fprintf (outfile, "\nRandom integer:%d", job_shop);
+    //fprintf (outfile, "\nRandom integer:%d", job_shop);
 
     if (job_shop == 0){
       event_schedule (sim_time, EVENT_ARRIVAL_1);
@@ -422,12 +422,15 @@ depart_3 (void)			/* Event function for departure of a job from a particular
 void
 report (void)			/* Report generator function. */
 {
+  //DEBUG
+  // fprintf(outfile,"\nNum job type: %d",num_job_types);
+  // fprintf(outfile,"Num stations: %d",num_stations);
+
   int i;
   double overall_avg_job_tot_delay, avg_job_tot_delay, sum_probs;
 
   /* Compute the average total delay in queue for each job type and the
      overall average job total delay. */
-
   fprintf (outfile, "\n\n\n\nJob type     Average total delay in queue");
   overall_avg_job_tot_delay = 0.0;
   sum_probs = 0.0;
@@ -464,11 +467,12 @@ main ()				/* Main function. */
   /* Read input parameters. */
 
   fscanf (infile, "%d %d %lg %lg", &num_stations, &num_job_types, &mean_interarrival, &length_simulation);
-  for (j = 1; j <= num_stations; ++j)
-    fscanf (infile, "%d", &temp_read);
-    num_machines[0][j] = temp_read;
-    num_machines[1][j] = temp_read;
-    num_machines[2][j] = temp_read;
+  for (j = 1; j <= num_stations; ++j){
+    fscanf (infile, "%d", &temp_read[j]);
+    num_machines[0][j] = temp_read[j];
+    num_machines[1][j] = temp_read[j];
+    num_machines[2][j] = temp_read[j];
+  }
   for (i = 1; i <= num_job_types; ++i)
     fscanf (infile, "%d", &num_tasks[i]);
   for (i = 1; i <= num_job_types; ++i)
@@ -526,7 +530,7 @@ main ()				/* Main function. */
     num_machines_busy[1][j] = 0;
     num_machines_busy[2][j] = 0;
   }
-    
+
   /* Initialize simlib */
 
   init_simlib ();

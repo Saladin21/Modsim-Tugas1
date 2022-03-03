@@ -28,6 +28,8 @@ double mean_interarrival, length_simulation, prob_distrib_job_type[26],
   mean_service[MAX_NUM_JOB_TYPES + 1][MAX_NUM_STATIONS + 1];
 double prob_Job_Shop[2];
 int temp_read;
+double* transfer2;
+double* transfer3;
 
 FILE *infile, *outfile;
 
@@ -173,15 +175,17 @@ depart_1 (void)			/* Event function for departure of a job from a particular
   if (task1 < num_tasks[job_type1])
     {
       ++task1;
-      arrive (2);
+      arrive_1(2);
     }else{
-      transfer[3] = job_type1;
+      //Depart to 3
+      transfer3[3] = job_type1;
       event_schedule (sim_time, EVENT_ARRIVAL_3);
     }
 }
 
 void arrive_2(int new_job){
   int station;
+  int offset_jobshop2 = 50;
 
   if (new_job == 1)
     {
@@ -209,9 +213,9 @@ void arrive_2(int new_job){
          2. Job type.
          3. Current task number. */
 
-      transfer[1] = sim_time;
-      transfer[2] = job_type2;
-      transfer[3] = task2;
+      transfer2[1] = sim_time;
+      transfer2[2] = job_type2;
+      transfer2[3] = task2;
       list_file (LAST, station + num_stations);
     }
 
@@ -221,30 +225,32 @@ void arrive_2(int new_job){
       /* A machine in this station is idle, so start service on the arriving
          job (which has a delay of zero). */
 
-      sampst (0.0, station);	/* For station. */
-      sampst (0.0, num_stations + job_type);	/* For job type. */
+      sampst (0.0, station + offset_jobshop2);	/* For station. */
+      sampst (0.0, num_stations + job_type + offset_jobshop2);	/* For job type. */
       ++num_machines_busy[1][station];
-      timest ((double) num_machines_busy[1][station], station);
+      timest ((double) num_machines_busy[1][station], station + offset_jobshop2);
 
       /* Schedule a service completion.  Note defining attributes beyond the
          first two for the event record before invoking event_schedule. */
 
-      transfer[3] = job_type2;
-      transfer[4] = task2;
+      transfer2[3] = job_type2;
+      transfer2[4] = task2;
       event_schedule (sim_time + erlang (2, mean_service[job_type2][task2], STREAM_SERVICE), EVENT_DEPARTURE_2);
     }
 }
 
+//Offset jobtype 2 = 50
 void
 depart_2 (void)			/* Event function for departure of a job from a particular
 				   station. */
 {
   int station, job_type_queue, task_queue;
+  int offset_jobshop2 = 50;
 
   /* Determine the station from which the job is departing. */
 
-  job_type2 = transfer[3];
-  task2 = transfer[4];
+  job_type2 = transfer2[3];
+  task2 = transfer2[4];
   station = route[job_type2][task2];
 
   /* Check to see whether the queue for this station is empty. */
@@ -256,7 +262,7 @@ depart_2 (void)			/* Event function for departure of a job from a particular
          station idle. */
 
       --num_machines_busy[1][station];
-      timest ((double) num_machines_busy[1][station], station);
+      timest ((double) num_machines_busy[1][station], station+offset_jobshop2);
     }
 
   else
@@ -264,24 +270,24 @@ depart_2 (void)			/* Event function for departure of a job from a particular
 
       /* The queue is nonempty, so start service on first job in queue. */
 
-      list_remove (FIRST, station);
+      list_remove (FIRST, station + num_stations);
 
       /* Tally this delay for this station. */
 
-      sampst (sim_time - transfer[1], station);
+      sampst (sim_time - transfer2[1], station+offset_jobshop2);
 
       /* Tally this same delay for this job type. */
 
-      job_type_queue = transfer[2];
-      task_queue = transfer[3];
-      sampst (sim_time - transfer[1], num_stations + job_type_queue);
+      job_type_queue = transfer2[2];
+      task_queue = transfer2[3];
+      sampst (sim_time - transfer2[1], num_stations + job_type_queue+offset_jobshop2);
 
       /* Schedule end of service for this job at this station.  Note defining
          attributes beyond the first two for the event record before invoking
          event_schedule. */
 
-      transfer[3] = job_type_queue;
-      transfer[4] = task_queue;
+      transfer2[3] = job_type_queue;
+      transfer2[4] = task_queue;
       event_schedule (sim_time + erlang (2, mean_service[job_type_queue][task_queue], STREAM_SERVICE), EVENT_DEPARTURE_2);
     }
 
@@ -291,19 +297,21 @@ depart_2 (void)			/* Event function for departure of a job from a particular
   if (task2 < num_tasks[job_type2])
     {
       ++task2;
-      arrive (2);
+      arrive_2(2);
     }else{
-      transfer[3] = job_type2;
+      //Depart to 3
+      transfer3[3] = job_type2;
       event_schedule (sim_time, EVENT_ARRIVAL_3);
     }
 }
 
 void arrive_3(int new_job){
   int station;
+  int offset_jobshop3 = 100;
 
   if (new_job == 1)
     {
-      job_type3 = transfer[3];
+      job_type3 = transfer3[3];
       task3 = 1;
     }
 
@@ -324,9 +332,9 @@ void arrive_3(int new_job){
          2. Job type.
          3. Current task number. */
 
-      transfer[1] = sim_time;
-      transfer[2] = job_type3;
-      transfer[3] = task3;
+      transfer3[1] = sim_time;
+      transfer3[2] = job_type3;
+      transfer3[3] = task3;
       list_file (LAST, station + num_stations*2);
     }
 
@@ -336,16 +344,16 @@ void arrive_3(int new_job){
       /* A machine in this station is idle, so start service on the arriving
          job (which has a delay of zero). */
 
-      sampst (0.0, station);	/* For station. */
-      sampst (0.0, num_stations + job_type);	/* For job type. */
+      sampst (0.0, station + offset_jobshop3);	/* For station. */
+      sampst (0.0, num_stations + job_type + offset_jobshop3);	/* For job type. */
       ++num_machines_busy[2][station];
-      timest ((double) num_machines_busy[2][station], station);
+      timest ((double) num_machines_busy[2][station], station + offset_jobshop3);
 
       /* Schedule a service completion.  Note defining attributes beyond the
          first two for the event record before invoking event_schedule. */
 
-      transfer[3] = job_type3;
-      transfer[4] = task3;
+      transfer3[3] = job_type3;
+      transfer3[4] = task3;
       event_schedule (sim_time + erlang (2, mean_service[job_type3][task3], STREAM_SERVICE), EVENT_DEPARTURE_3);
     }
 }
@@ -355,11 +363,11 @@ depart_3 (void)			/* Event function for departure of a job from a particular
 				   station. */
 {
   int station, job_type_queue, task_queue;
-
+  int offset_jobshop3 = 100;
   /* Determine the station from which the job is departing. */
 
-  job_type3 = transfer[3];
-  task3 = transfer[4];
+  job_type3 = transfer3[3];
+  task3 = transfer3[4];
   station = route[job_type3][task3];
 
   /* Check to see whether the queue for this station is empty. */
@@ -371,7 +379,7 @@ depart_3 (void)			/* Event function for departure of a job from a particular
          station idle. */
 
       --num_machines_busy[2][station];
-      timest ((double) num_machines_busy[2][station], station);
+      timest ((double) num_machines_busy[2][station], station + offset_jobshop3);
     }
 
   else
@@ -379,24 +387,24 @@ depart_3 (void)			/* Event function for departure of a job from a particular
 
       /* The queue is nonempty, so start service on first job in queue. */
 
-      list_remove (FIRST, station);
+      list_remove (FIRST, station + num_stations*2);
 
       /* Tally this delay for this station. */
 
-      sampst (sim_time - transfer[1], station);
+      sampst (sim_time - transfer[1], station + offset_jobshop3);
 
       /* Tally this same delay for this job type. */
 
-      job_type_queue = transfer[2];
-      task_queue = transfer[3];
-      sampst (sim_time - transfer[1], num_stations + job_type_queue);
+      job_type_queue = transfer3[2];
+      task_queue = transfer3[3];
+      sampst (sim_time - transfer[1], num_stations + job_type_queue + offset_jobshop3);
 
       /* Schedule end of service for this job at this station.  Note defining
          attributes beyond the first two for the event record before invoking
          event_schedule. */
 
-      transfer[3] = job_type_queue;
-      transfer[4] = task_queue;
+      transfer3[3] = job_type_queue;
+      transfer3[4] = task_queue;
       event_schedule (sim_time + erlang (2, mean_service[job_type_queue][task_queue], STREAM_SERVICE), EVENT_DEPARTURE_3);
     }
 
@@ -405,8 +413,8 @@ depart_3 (void)			/* Event function for departure of a job from a particular
 
   if (task3 < num_tasks[job_type3])
     {
-      ++task2;
-      arrive (2);
+      ++task3;
+      arrive_3(2);
     }
 }
 
@@ -444,6 +452,10 @@ report (void)			/* Report generator function. */
 int
 main ()				/* Main function. */
 {
+  /* Set transfer tambahan */
+  transfer2 = (double *) calloc (11, sizeof (double));
+  transfer3 = (double *) calloc (11, sizeof (double));
+
   /* Open input and output files. */
 
   infile = fopen ("jobshop.in", "r");

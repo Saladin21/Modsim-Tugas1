@@ -20,7 +20,7 @@
 
 /* Declare non-simlib global variables. */
 
-int num_stations, num_job_types, i, j, num_machines[NUM_JOB_SHOP][MAX_NUM_STATIONS + 1],
+int num_stations, num_job_types, i, j, num_machines[MAX_NUM_STATIONS + 1],
   num_tasks[MAX_NUM_JOB_TYPES + 1],
   route[MAX_NUM_JOB_TYPES + 1][MAX_NUM_STATIONS + 1], num_machines_busy[NUM_JOB_SHOP][MAX_NUM_STATIONS + 1], job_type, task, job_type1, task1,job_type2, task2,
   job_type3, task3;
@@ -70,7 +70,7 @@ void arrive_1(int new_job){
 
   if (new_job == 1)
     {
-      fprintf (outfile, "\nMasuk New JOB1");
+      // fprintf (outfile, "\nMasuk New JOB1");
       // new schedule harusnya di-handle arrive
       //event_schedule (sim_time + expon (mean_interarrival, STREAM_INTERARRIVAL), EVENT_ARRIVAL_1);
       job_type1 = random_integer (prob_distrib_job_type, STREAM_JOB_TYPE);
@@ -83,9 +83,9 @@ void arrive_1(int new_job){
 
   /* Check to see whether all machines in this station are busy. */
 
-  if (num_machines_busy[0][station] == num_machines[0][station])
+  if (num_machines_busy[0][station] == num_machines[station])
     {
-      fprintf (outfile, "\nMasuk Busy JOB1");
+      // fprintf (outfile, "\nMasuk Busy JOB1");
       /* All machines in this station are busy, so place the arriving job at
          the end of the appropriate queue. Note that the following data are
          stored in the record for each job:
@@ -101,7 +101,7 @@ void arrive_1(int new_job){
 
   else
     {
-      fprintf (outfile, "\nMasuk Service JOB1");
+      // fprintf (outfile, "\nMasuk Service JOB1");
       /* A machine in this station is idle, so start service on the arriving
          job (which has a delay of zero). */
 
@@ -189,7 +189,7 @@ void arrive_2(int new_job){
 
   if (new_job == 1)
     {
-      fprintf (outfile, "\nMasuk New JOB2");
+      // fprintf (outfile, "\nMasuk New JOB2");
       // new schedule harusnya di-handle arrive
       //event_schedule (sim_time + expon (mean_interarrival, STREAM_INTERARRIVAL), EVENT_ARRIVAL_2);
       job_type2 = random_integer (prob_distrib_job_type, STREAM_JOB_TYPE);
@@ -203,9 +203,9 @@ void arrive_2(int new_job){
 
   /* Check to see whether all machines in this station are busy. */
 
-  if (num_machines_busy[1][station] == num_machines[1][station])
+  if (num_machines_busy[1][station] == num_machines[station])
     {
-      fprintf (outfile, "\nMasuk Busy JOB2");
+      // fprintf (outfile, "\nMasuk Busy JOB2");
       /* All machines in this station are busy, so place the arriving job at
          the end of the appropriate queue. Note that the following data are
          stored in the record for each job:
@@ -221,14 +221,14 @@ void arrive_2(int new_job){
 
   else
     {
-      fprintf (outfile, "\nMasuk Service JOB2");
+      // fprintf (outfile, "\nMasuk Service JOB2");
       /* A machine in this station is idle, so start service on the arriving
          job (which has a delay of zero). */
 
-      sampst (0.0, station + offset_jobshop2);	/* For station. */
-      sampst (0.0, num_stations + job_type + offset_jobshop2);	/* For job type. */
+      sampst (0.0, station + num_stations);	/* For station. */
+      sampst (0.0, num_stations + job_type);	/* For job type. */
       ++num_machines_busy[1][station];
-      timest ((double) num_machines_busy[1][station], station);
+      timest ((double) num_machines_busy[1][station], station+num_stations);
 
       /* Schedule a service completion.  Note defining attributes beyond the
          first two for the event record before invoking event_schedule. */
@@ -262,7 +262,7 @@ depart_2 (void)			/* Event function for departure of a job from a particular
          station idle. */
 
       --num_machines_busy[1][station];
-      timest ((double) num_machines_busy[1][station], station);
+      timest ((double) num_machines_busy[1][station], station+num_stations);
     }
 
   else
@@ -274,13 +274,13 @@ depart_2 (void)			/* Event function for departure of a job from a particular
 
       /* Tally this delay for this station. */
 
-      sampst (sim_time - transfer[1], station+offset_jobshop2);
+      sampst (sim_time - transfer[1], station+num_stations);
 
       /* Tally this same delay for this job type. */
 
       job_type_queue = transfer[2];
       task_queue = transfer[3];
-      sampst (sim_time - transfer[1], num_stations + job_type_queue+offset_jobshop2);
+      sampst (sim_time - transfer[1], num_stations + job_type_queue);
 
       /* Schedule end of service for this job at this station.  Note defining
          attributes beyond the first two for the event record before invoking
@@ -322,7 +322,7 @@ void arrive_3(int new_job){
 
   /* Check to see whether all machines in this station are busy. */
 
-  if (num_machines_busy[2][station] == num_machines[2][station])
+  if (num_machines_busy[2][station] == num_machines[station])
     {
 
       /* All machines in this station are busy, so place the arriving job at
@@ -344,10 +344,10 @@ void arrive_3(int new_job){
       /* A machine in this station is idle, so start service on the arriving
          job (which has a delay of zero). */
 
-      sampst (0.0, station + offset_jobshop3);	/* For station. */
-      sampst (0.0, num_stations + job_type + offset_jobshop3);	/* For job type. */
+      sampst (0.0, station + 2*num_stations);	/* For station. */
+      sampst (0.0, num_stations + job_type);	/* For job type. */
       ++num_machines_busy[2][station];
-      timest ((double) num_machines_busy[2][station], station);
+      timest ((double) num_machines_busy[2][station], station+2*num_stations);
 
       /* Schedule a service completion.  Note defining attributes beyond the
          first two for the event record before invoking event_schedule. */
@@ -379,7 +379,7 @@ depart_3 (void)			/* Event function for departure of a job from a particular
          station idle. */
 
       --num_machines_busy[2][station];
-      timest ((double) num_machines_busy[2][station], station);
+      timest ((double) num_machines_busy[2][station], station + 2*num_stations);
     }
 
   else
@@ -391,13 +391,13 @@ depart_3 (void)			/* Event function for departure of a job from a particular
 
       /* Tally this delay for this station. */
 
-      sampst (sim_time - transfer[1], station + offset_jobshop3);
+      sampst (sim_time - transfer[1], station + 2*num_stations);
 
       /* Tally this same delay for this job type. */
 
       job_type_queue = transfer[2];
       task_queue = transfer[3];
-      sampst (sim_time - transfer[1], num_stations + job_type_queue + offset_jobshop3);
+      sampst (sim_time - transfer[1], num_stations + job_type_queue);
 
       /* Schedule end of service for this job at this station.  Note defining
          attributes beyond the first two for the event record before invoking
@@ -446,11 +446,23 @@ report (void)			/* Report generator function. */
   /* Compute the average number in queue, the average utilization, and the
      average delay in queue for each station. */
 
-  fprintf (outfile, "\n\n\n Work      Average number      Average       Average delay");
+  fprintf (outfile, "\n\n\nJob Shop 1\n Work      Average number      Average       Average delay");
   fprintf (outfile, "\nstation       in queue       utilization        in queue");
   for (j = 1; j <= num_stations; ++j)
-    fprintf (outfile, "\n\n%4d%17.3f%17.3f%17.3f", j, filest (j), timest (0.0, -j) / num_machines[0][j], sampst (0.0, -j));
+    fprintf (outfile, "\n\n%4d%17.3f%17.3f%17.3f", j, filest (j),  timest (0.0, -j)/ num_machines[j], sampst (0.0, -j));
+
+  fprintf (outfile, "\n\n\nJob Shop 2\n Work      Average number      Average       Average delay");
+  fprintf (outfile, "\nstation       in queue       utilization        in queue");
+  for (j = 1+num_stations; j <= 2*num_stations; ++j)
+    fprintf (outfile, "\n\n%4d%17.3f%17.3f%17.3f", j-num_stations, filest (j), timest (0.0, -j)/ num_machines[j-num_stations], sampst (0.0, -(j+num_job_types)));
+
+  fprintf (outfile, "\n\n\nJob Shop 3\n Work      Average number      Average       Average delay");
+  fprintf (outfile, "\nstation       in queue       utilization        in queue");
+  for (j = 1+2*num_stations; j <= 3*num_stations; ++j)
+    fprintf (outfile, "\n\n%4d%17.3f%17.3f%17.3f", j-2*num_stations, filest (j), timest (0.0, -j)/ num_machines[j-2*num_stations], sampst (0.0, -(j+num_job_types)));
 }
+
+
 
 int
 main ()				/* Main function. */
@@ -464,9 +476,7 @@ main ()				/* Main function. */
   fscanf (infile, "%d %d %lg %lg", &num_stations, &num_job_types, &mean_interarrival, &length_simulation);
   for (j = 1; j <= num_stations; ++j){
     fscanf (infile, "%d", &temp_read[j]);
-    num_machines[0][j] = temp_read[j];
-    num_machines[1][j] = temp_read[j];
-    num_machines[2][j] = temp_read[j];
+    num_machines[j] = temp_read[j];
   }
   for (i = 1; i <= num_job_types; ++i)
     fscanf (infile, "%d", &num_tasks[i]);
@@ -490,7 +500,7 @@ main ()				/* Main function. */
   fprintf (outfile, "Number of machines in each station     ");
   for (j = 1; j <= num_stations; ++j)
     //Number of stations identic per jobshop
-    fprintf (outfile, "%5d", num_machines[0][j]);
+    fprintf (outfile, "%5d", num_machines[j]);
   fprintf (outfile, "\n\nNumber of job types%25d\n\n", num_job_types);
   fprintf (outfile, "Number of tasks for each job type      ");
   for (i = 1; i <= num_job_types; ++i)
@@ -556,6 +566,7 @@ main ()				/* Main function. */
       timing ();
       //DEBUG
       //fprintf(outfile,"\nTiming done:");
+      // fprintf(outfile, "\nnum machine: %d", num_machines[1]);
       /* Invoke the appropriate event function. */
 
       switch (next_event_type)
@@ -563,49 +574,49 @@ main ()				/* Main function. */
 	case EVENT_ARRIVAL:
 	  
     //DEBUG
-    fprintf(outfile,"\nEVENT_ARRIVAL:");
+    // fprintf(outfile,"\nEVENT_ARRIVAL:");
 
     arrive (1);
 	  break;
   case EVENT_ARRIVAL_1:
     
     //DEBUG
-    fprintf(outfile,"\nEVENT_ARRIVAL1:");
+    // fprintf(outfile,"\nEVENT_ARRIVAL1:");
 
     arrive_1(1);
     break;
   case EVENT_ARRIVAL_2:
     
     //DEBUG
-    fprintf(outfile,"\nEVENT_ARRIVAL2:");
+    // fprintf(outfile,"\nEVENT_ARRIVAL2:");
 
     arrive_2(1);
     break;
   case EVENT_DEPARTURE_1:
     
     //DEBUG
-    fprintf(outfile,"\nEVENT_DEPARTURE1:");
+    // fprintf(outfile,"\nEVENT_DEPARTURE1:");
 
     depart_1();
     break;
   case EVENT_DEPARTURE_2:
     
     //DEBUG
-    fprintf(outfile,"\nEVENT_DEPARTURE2:");
+    // fprintf(outfile,"\nEVENT_DEPARTURE2:");
 
     depart_2();
     break;
   case EVENT_ARRIVAL_3:
     
     //DEBUG
-    fprintf(outfile,"\nEVENT_ARRIVAL3:");
+    // fprintf(outfile,"\nEVENT_ARRIVAL3:");
 
     arrive_3(1);
     break;
   case EVENT_DEPARTURE_3:
     
     //DEBUG
-    fprintf(outfile,"\nEVENT_DEPARTURE3:");
+    // fprintf(outfile,"\nEVENT_DEPARTURE3:");
 
     depart_3();
     break;

@@ -225,7 +225,7 @@ void arrive_2(int new_job){
       /* A machine in this station is idle, so start service on the arriving
          job (which has a delay of zero). */
 
-      sampst (0.0, station + num_stations);	/* For station. */
+      sampst (0.0, station + num_stations + num_job_types);	/* For station. */
       sampst (0.0, num_stations + job_type);	/* For job type. */
       ++num_machines_busy[1][station];
       timest ((double) num_machines_busy[1][station], station+num_stations);
@@ -274,7 +274,7 @@ depart_2 (void)			/* Event function for departure of a job from a particular
 
       /* Tally this delay for this station. */
 
-      sampst (sim_time - transfer[1], station+num_stations);
+      sampst (sim_time - transfer[1], station+num_stations+num_job_types);
 
       /* Tally this same delay for this job type. */
 
@@ -332,6 +332,8 @@ void arrive_3(int new_job){
          2. Job type.
          3. Current task number. */
 
+
+      
       transfer[1] = sim_time;
       transfer[2] = job_type3;
       transfer[3] = task3;
@@ -344,7 +346,7 @@ void arrive_3(int new_job){
       /* A machine in this station is idle, so start service on the arriving
          job (which has a delay of zero). */
 
-      sampst (0.0, station + 2*num_stations);	/* For station. */
+      sampst (0.0, station + 2*num_stations + num_job_types);	/* For station. */
       sampst (0.0, num_stations + job_type);	/* For job type. */
       ++num_machines_busy[2][station];
       timest ((double) num_machines_busy[2][station], station+2*num_stations);
@@ -390,8 +392,7 @@ depart_3 (void)			/* Event function for departure of a job from a particular
       list_remove (FIRST, station + num_stations*2);
 
       /* Tally this delay for this station. */
-
-      sampst (sim_time - transfer[1], station + 2*num_stations);
+      sampst (sim_time - transfer[1], station + 2*num_stations+ num_job_types);
 
       /* Tally this same delay for this job type. */
 

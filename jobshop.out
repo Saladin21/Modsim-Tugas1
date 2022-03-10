@@ -39,13 +39,13 @@ START OF THE SIMULATION:
 
 Job type     Average total delay in queue
 
-   1                      9.890
+   1                     13.731
 
-   2                      6.188
+   2                      7.165
 
-   3                     11.137
+   3                     16.585
 
-Overall average job total delay =     8.289
+Overall average job total delay =    11.019
 
 
 
@@ -68,30 +68,30 @@ Job Shop 2
  Work      Average number      Average       Average delay
 station       in queue       utilization        in queue
 
-   1            0.138            0.477            0.148
+   1            0.138            0.477            0.069
 
-   2            0.251            0.485            0.162
+   2            0.251            0.485            0.255
 
-   3            0.024            0.357            2.970
+   3            0.024            0.357            0.012
 
-   4            0.207            0.493            9.353
+   4            0.207            0.493            0.148
 
-   5            0.160            0.385            0.201
+   5            0.160            0.385            0.162
 
 
 Job Shop 3
  Work      Average number      Average       Average delay
 station       in queue       utilization        in queue
 
-   1           11.912            0.961            3.136
+   1           11.912            0.961            2.970
 
-   2           18.835            0.982            0.938
+   2           18.835            0.982            9.353
 
-   3            0.805            0.727            0.000
+   3            0.805            0.727            0.201
 
-   4            8.751            0.956            0.000
+   4            8.751            0.956            3.136
 
-   5            1.870            0.797            0.000
+   5            1.870            0.797            0.938
 
 
 END OF THE SIMULATION:
